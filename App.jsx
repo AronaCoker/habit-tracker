@@ -39,43 +39,62 @@ function App() {
 
 
   const handleAddHabit = async () => {
-    if (!habitName.trim()) {
-      alert('Bitte trage ein Habit ein.');
-      return;
-    }
+  // 1. Validierung – haben wir gerade gemacht!
+  if (!habitName.trim() || !frequency.trim()) {
+    alert("Bitte trage sowohl ein Habit als auch eine Häufigkeit ein.");
+    return;
+  }
 
-    const newHabit = { habitName, frequency };
+    const newHabit = {
+    name: habitName,
+    frequency: frequency,
+  };
 
 
 
     try {
-      const res = await fetch('http://localhost:5000/api/habits', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newHabit),
-      });
+    // 3. POST-Anfrage an dein Backend
+    const response = await fetch("http://localhost:5000/api/habits", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newHabit),
+    });
 
-      if (!res.ok) throw new Error('Fehler beim Speichern');
-
-      const savedHabit = await res.json();
-      setHabits([...habits, savedHabit]);  // neuen Habit an Liste anhängen
-      setHabitName('');      // Eingabefeld zurücksetzen
-      setFrequency('daily');  // Dropdown zurücksetzen
-    } catch (error) {
-      alert('Fehler: ' + error.message);
+      if (!response.ok) {
+      throw new Error("Fehler beim Speichern des Habits");
     }
-  };
+
+         const savedHabit = await response.json();
+
+    // 5. UI updaten – neuen Habit zur Liste hinzufügen
+    setHabits((prevHabits) => [...prevHabits, savedHabit]);
+
+    // 6. Input-Felder leeren
+    setHabitName("");
+    setFrequency("");
+  } catch (error) {
+    console.error("Fehler beim Speichern:", error.message);
+    alert("Etwas ist schief gelaufen!");
+  }
+};
+
 
   return (
     <div>
-      <h1>Meine Habits</h1>
+      <h1>Habit Tracker</h1>
 
       <input
-        type="text"
-        placeholder="Name des Habits"
-        value={habitName}
-        onChange={(e) => setHabitName(e.target.value)}
-      />
+  value={habitName}
+  onChange={(e) => setHabitName(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      handleAddHabit();
+    }
+  }}
+  placeholder="Neues Habit..."
+/>
 
       <select
         value={frequency}
